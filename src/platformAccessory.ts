@@ -15,6 +15,7 @@ export class EmporiaVueVirtualSwitchAccessory {
    * State tracking of the accessory
    */
   private state = {
+    isOn: false,
     printCount: 0 as number,
     watts: 0 as number,
     powerHistory: [] as number[],
@@ -37,12 +38,11 @@ export class EmporiaVueVirtualSwitchAccessory {
     this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.displayName);
 
     // register handlers for the On/Off Characteristic
-    //    this.service.getCharacteristic(this.platform.Characteristic.On)
-    //      .onSet(this.setOn.bind(this)) // SET - bind to the `setOn` method below
-    //      .onGet(this.getOn.bind(this)); // GET - bind to the `getOn` method below
-
+    this.service.getCharacteristic(this.platform.Characteristic.On)
+      .onSet(this.setOn.bind(this)) // SET - bind to the `setOn` method below
+      .onGet(this.getOn.bind(this)); // GET - bind to the `getOn` method below
     // initial state update on startup (not awaited, will complete in the background)
-    this.updateState();
+    this.updateState(true);
   }
 
   /**
@@ -60,28 +60,35 @@ export class EmporiaVueVirtualSwitchAccessory {
   async getOn(): Promise<CharacteristicValue> {
     this.state.printCount = 10;
     await this.updateState();
-    return true;
+    return this.state.isOn;
   }
 
   // Update the state of the switch
-  async updateState(init: number = 0) {
+  async updateState(init: boolean = false) {
+    const printInterval = this.platform.config.printInterval ?? 10;
     const currentWatts = await this.getStateEmporiaVue();
+    if (!Number.isFinite(currentWatts)) {
+      throw new Error(`Invalid wattage received: ${currentWatts}`);
+    }
+    this.state.isOn = currentWatts > 400;
     this.state.powerHistory.push(currentWatts);
-    if (this.state.powerHistory.length > 10) {
+    if (this.state.powerHistory.length > printInterval) {
       this.state.powerHistory.shift();
     }
     if (init) {
       this.platform.log.info(`Emporia Vue initialized to ${currentWatts} W.`);
     } else {
       this.state.printCount++;
-      if (this.state.printCount >= 10) {
-        this.platform.log.info(`Current power consumption: ${this.state.powerHistory.map(v => String(v).padStart(4, ' ')).join(', ')} W`);
+      if (this.state.printCount >= printInterval) {
+        const powerPrint = this.state.powerHistory.map(v => String(v).padStart(4, ' ')).join(', ');
+        this.platform.log.info(`Current power consumption: ${powerPrint} W`);
         this.state.printCount = 0;
       } else {
-        this.platform.log.debug(`current power consumption: ${currentWatts} W`);
+        this.platform.log.debug(`Current power consumption: ${currentWatts} W`);
       }
     }
     this.state.watts = currentWatts;
+    this.service.getCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel).updateValue(Math.max(0.0001, currentWatts));
   }
 
   // Retrieves state as per Emporia Vue API (doesn't update the device's internal state)

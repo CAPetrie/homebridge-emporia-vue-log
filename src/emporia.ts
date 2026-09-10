@@ -30,7 +30,7 @@ export class EmporiaVueIntegration {
     return [ `*/${this.refreshIntervalMinutes} * * * *` ]; // runs status update every X minutes
   }
 
-  // Return current state (boolean) from Emporia API based on channel's current watts usage
+  // Return current wattage (number) from Emporia API
   async getState(): Promise<number> {
     // Login with username/password (tokens will be stored for reuse on subsequent logins)
     const vue = new EmporiaVue();
@@ -41,8 +41,8 @@ export class EmporiaVueIntegration {
         tokenStorageFile: 'keys.json',
       });
     } catch (error) {
-      this.log.error('Error logging to Emporia Vue API', error);
-      return 0;
+      this.log.error('Error logging into Emporia Vue API:', error);
+      throw error;
     }
 
     // Get all devices
@@ -51,7 +51,7 @@ export class EmporiaVueIntegration {
       devices = await vue.getDevices();
     } catch (error) {
       this.log.error('Error fetching devices from Emporia Vue API', error);
-      return 0;
+      throw error;
     }
 
     // Find the device that hosts the channel we are concerned with
@@ -70,7 +70,7 @@ export class EmporiaVueIntegration {
       deviceChannelUsage = allUsageData[channel.deviceGid].channelUsages[channel.channelNum];
     } catch (error) {
       this.log.error(`Error fetching '${this.channelName}' current kWh usage from Emporia Vue API`, error);
-      return 0;
+      throw error;
     }
 
     // Convert kWh to Watts and round to 2 decimal places

@@ -2,7 +2,7 @@
   "name": "homebridge-emporia-vue-log",
   "displayName": "Emporia Vue Log for Homebridge",
   "type": "module",
-  "version": "0.1.1",
+  "version": "0.1.4",
   "private": false,
   "description": "Virtual Switch that returns the watts as lux based on Emporia Vue",
   "author": "Caleb Petrie",

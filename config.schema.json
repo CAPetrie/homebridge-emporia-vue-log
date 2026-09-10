@@ -1,5 +1,5 @@
 {
-  "pluginAlias": "EmporiaVueVirtualSwitchPlugin",
+  "pluginAlias": "EmporiaVuePowerLog",
   "pluginType": "platform",
   "singular": true,
   "strictValidation": false,
@@ -28,7 +28,7 @@
         "title": "Emporia Vue Channel Name (put '1,2,3')",
         "type": "string",
         "required": true,
-        "default": ""
+        "default": "1,2,3"
       },
       "refreshIntervalMinutes": {
         "title": "Refresh Interval (1-59 minutes)",
@@ -41,7 +41,7 @@
         "type": "number",
         "required": true,
         "default": 10
-      },
+      }
     }
   }
 }

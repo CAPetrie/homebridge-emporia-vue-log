@@ -10,8 +10,8 @@ interface EmporiaVuePluginConfig extends PlatformConfig {
   emporiaVuePassword?: string;
   emporiaVueChannelName?: string;
   refreshIntervalMinutes?: number;
+  printInterval?: number;
 }
-
 /**
  * HomebridgePlatform
  * This class is the main constructor for your plugin, this is where you should
@@ -52,7 +52,7 @@ export class EmporiaVueVirtualSwitchPlatform implements DynamicPlatformPlugin {
     this.log.info(`Config "emporiaVuePassword" --> ${this.maskValue(this.config.emporiaVuePassword)}`);
     this.log.info(`Config "emporiaVueChannelName" --> ${this.config.emporiaVueChannelName}`);
     this.log.info(`Config "refreshIntervalMinutes" --> ${refreshMinutes}`);
-    // setup the Emporia Vue integration
+    // set up the Emporia Vue integration
     this.emporia = new EmporiaVueIntegration(
       this.config.emporiaVueChannelName || 'Unknown Channel',
       refreshMinutes,
