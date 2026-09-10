@@ -59,8 +59,6 @@ export class EmporiaVueVirtualSwitchAccessory {
    * These are sent when HomeKit wants to know the current state of the accessory.
    */
   async getOn(): Promise<CharacteristicValue> {
-    this.state.printCount = 10;
-    await this.updateState();
     return this.state.isOn;
   }
   // Update the state of the switch
@@ -68,7 +66,7 @@ export class EmporiaVueVirtualSwitchAccessory {
     const printInterval = this.platform.config.printInterval ?? 10;
     const currentWatts = await this.getStateEmporiaVue();
     //if (!Number.isFinite(currentWatts)) {
-      //throw new Error(`Invalid wattage received: ${currentWatts}`);
+    // throw new Error(`Invalid wattage received: ${currentWatts}`);
     //}
     this.state.isOn = currentWatts > 400;
     this.state.powerHistory.push(currentWatts);
@@ -89,6 +87,7 @@ export class EmporiaVueVirtualSwitchAccessory {
     }
     this.state.watts = currentWatts;
     this.service.getCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel).updateValue(Math.max(0.0001, currentWatts));
+    this.service.getCharacteristic(this.platform.Characteristic.On).updateValue(this.state.isOn);
   }
 
   // Retrieves state as per Emporia Vue API (doesn't update the device's internal state)

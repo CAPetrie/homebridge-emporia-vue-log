@@ -48,8 +48,8 @@ export class EmporiaVueVirtualSwitchPlatform implements DynamicPlatformPlugin {
     // make sure the refresh interval is between 1 and 59 minutes
     const refreshMinutes = Math.min(Math.max(this.config.refreshIntervalMinutes || 15, 1), 59);
     this.log.info('Emporia Vue Power Log Plugin Loaded');
-    this.log.info(`Config "emporiaVueUsername" --> ${this.maskValue(this.config.emporiaVueUsername)}`);
-    this.log.info(`Config "emporiaVuePassword" --> ${this.maskValue(this.config.emporiaVuePassword)}`);
+    //this.log.info(`Config "emporiaVueUsername" --> ${this.maskValue(this.config.emporiaVueUsername)}`);
+    //this.log.info(`Config "emporiaVuePassword" --> ${this.maskValue(this.config.emporiaVuePassword)}`);
     this.log.info(`Config "emporiaVueChannelName" --> ${this.config.emporiaVueChannelName}`);
     this.log.info(`Config "refreshIntervalMinutes" --> ${refreshMinutes}`);
     // set up the Emporia Vue integration
@@ -78,23 +78,11 @@ export class EmporiaVueVirtualSwitchPlatform implements DynamicPlatformPlugin {
    * This function is invoked when homebridge restores cached accessories from disk at startup.
    * It should be used to set up event handlers for characteristics and update respective values.
    */
-  /*configureAccessory(accessory: PlatformAccessory) {
+  configureAccessory(accessory: PlatformAccessory) {
     this.log.info('Loading accessory from cache:', accessory.displayName);
 
     // add the restored accessory to the accessories cache, so we can track if it has already been registered
     this.accessories.set(accessory.UUID, accessory);
-  }*/
-  configureAccessory(accessory: PlatformAccessory) {
-    this.log.info(
-      'Removing cached accessory:',
-      accessory.displayName,
-    );
-
-    this.api.unregisterPlatformAccessories(
-      PLUGIN_NAME,
-      PLATFORM_NAME,
-      [accessory],
-    );
   }
   
   /**
