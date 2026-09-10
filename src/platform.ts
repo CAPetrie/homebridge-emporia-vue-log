@@ -1,5 +1,5 @@
 import type { API, Characteristic, DynamicPlatformPlugin, Logging, PlatformAccessory, PlatformConfig, Service } from 'homebridge';
-import { setTimeout } from 'timers/promises';
+//import { setTimeout } from 'timers/promises';
 import cron from 'node-cron';
 import { EmporiaVueVirtualSwitchAccessory } from './platformAccessory.js';
 import { EmporiaVueIntegration } from './emporia.js';
@@ -9,7 +9,6 @@ interface EmporiaVuePluginConfig extends PlatformConfig {
   emporiaVueUsername?: string;
   emporiaVuePassword?: string;
   emporiaVueChannelName?: string;
-  wattageThreshold?: number;
   refreshIntervalMinutes?: number;
 }
 
@@ -52,7 +51,6 @@ export class EmporiaVueVirtualSwitchPlatform implements DynamicPlatformPlugin {
     this.log.info(`Config "emporiaVueUsername" --> ${this.maskValue(this.config.emporiaVueUsername)}`);
     this.log.info(`Config "emporiaVuePassword" --> ${this.maskValue(this.config.emporiaVuePassword)}`);
     this.log.info(`Config "emporiaVueChannelName" --> ${this.config.emporiaVueChannelName}`);
-    this.log.info(`Config "wattageThreshold" --> ${this.config.wattageThreshold}`);
     this.log.info(`Config "refreshIntervalMinutes" --> ${refreshMinutes}`);
     // setup the Emporia Vue integration
     this.emporia = new EmporiaVueIntegration(
@@ -115,8 +113,7 @@ export class EmporiaVueVirtualSwitchPlatform implements DynamicPlatformPlugin {
         this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
         // create the accessory handler for the restored accessory
         this.handler = new EmporiaVueVirtualSwitchAccessory(this, existingAccessory, this.emporia);
-      }
-      else {
+      } else {
         // the accessory does not yet exist, so we need to create it
         this.log.info('Adding new accessory:', device.displayName);
         // create a new accessory

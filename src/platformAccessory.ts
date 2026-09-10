@@ -1,7 +1,7 @@
-import type {CharacteristicValue, PlatformAccessory, Service} from 'homebridge';
+import type { CharacteristicValue, PlatformAccessory, Service } from 'homebridge';
 
-import type {EmporiaVueVirtualSwitchPlatform} from './platform.js';
-import {EmporiaVueIntegration} from './emporia.js';
+import type { EmporiaVueVirtualSwitchPlatform } from './platform.js';
+import { EmporiaVueIntegration } from './emporia.js';
 
 /**
  * Platform Accessory
@@ -37,9 +37,9 @@ export class EmporiaVueVirtualSwitchAccessory {
     this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.displayName);
 
     // register handlers for the On/Off Characteristic
-//    this.service.getCharacteristic(this.platform.Characteristic.On)
-//      .onSet(this.setOn.bind(this)) // SET - bind to the `setOn` method below
-//      .onGet(this.getOn.bind(this)); // GET - bind to the `getOn` method below
+    //    this.service.getCharacteristic(this.platform.Characteristic.On)
+    //      .onSet(this.setOn.bind(this)) // SET - bind to the `setOn` method below
+    //      .onGet(this.getOn.bind(this)); // GET - bind to the `getOn` method below
 
     // initial state update on startup (not awaited, will complete in the background)
     this.updateState();
@@ -66,21 +66,21 @@ export class EmporiaVueVirtualSwitchAccessory {
   // Update the state of the switch
   async updateState(init: number = 0) {
     const currentWatts = await this.getStateEmporiaVue();
-        this.state.powerHistory.push(currentWatts);
-        if (this.state.powerHistory.length > 10) {this.state.powerHistory.shift();}
-        if (init) {
-            this.platform.log.info(`Emporia Vue initialized to ${currentWatts} W.`);
-        }
-        else {
-            this.state.printCount++;
-            if (this.state.printCount >= 10) {
-                this.platform.log.info(`Current power consumption: ${this.state.powerHistory.map(v => String(v).padStart(4, ' ')).join(', ')} W`);
-                this.state.printCount = 0;
-            }
-            else {
-                this.platform.log.debug(`current power consumption: ${currentWatts} W`);
-            }
-        }
+    this.state.powerHistory.push(currentWatts);
+    if (this.state.powerHistory.length > 10) {
+      this.state.powerHistory.shift();
+    }
+    if (init) {
+      this.platform.log.info(`Emporia Vue initialized to ${currentWatts} W.`);
+    } else {
+      this.state.printCount++;
+      if (this.state.printCount >= 10) {
+        this.platform.log.info(`Current power consumption: ${this.state.powerHistory.map(v => String(v).padStart(4, ' ')).join(', ')} W`);
+        this.state.printCount = 0;
+      } else {
+        this.platform.log.debug(`current power consumption: ${currentWatts} W`);
+      }
+    }
     this.state.watts = currentWatts;
   }
 

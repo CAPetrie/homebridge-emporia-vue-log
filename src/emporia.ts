@@ -49,16 +49,15 @@ export class EmporiaVueIntegration {
     let devices;
     try {
       devices = await vue.getDevices();
-    }
-    catch (error) {
+    } catch (error) {
       this.log.error('Error fetching devices from Emporia Vue API', error);
       return 0;
     }
 
     // Find the device that hosts the channel we are concerned with
     const channel = devices
-      .flatMap((device: { channels: any; }) => device.channels)
-      .find((channel: { channelNum: string; }) => channel.channelNum === this.channelName);
+      .flatMap(device => device.channels)
+      .find(channel => channel.channelNum === this.channelName);
     if (!channel) {
       this.log.error(`Channel with name '${this.channelName}' not found, assuming OFF state`);
       return 0;
@@ -69,8 +68,7 @@ export class EmporiaVueIntegration {
     try {
       const allUsageData = await vue.getDeviceListUsage(String(channel.deviceGid));
       deviceChannelUsage = allUsageData[channel.deviceGid].channelUsages[channel.channelNum];
-    }
-    catch (error) {
+    } catch (error) {
       this.log.error(`Error fetching '${this.channelName}' current kWh usage from Emporia Vue API`, error);
       return 0;
     }

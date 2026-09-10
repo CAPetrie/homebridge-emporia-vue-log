@@ -10,7 +10,7 @@
         "title": "Name",
         "type": "string",
         "required": true,
-        "default": "Emporia-Vue Virtual Switch"
+        "default": "Emporia-Vue Power Log"
       },
       "emporiaVueUsername": {
         "title": "Emporia Vue Username",
@@ -25,23 +25,23 @@
         "default": ""
       },
       "emporiaVueChannelName": {
-        "title": "Emporia Vue Channel Name",
+        "title": "Emporia Vue Channel Name (put '1,2,3')",
         "type": "string",
         "required": true,
         "default": ""
-      },
-      "wattageThreshold": {
-        "title": "Device Wattage Threshold",
-        "type": "number",
-        "required": true,
-        "default": 10
       },
       "refreshIntervalMinutes": {
         "title": "Refresh Interval (1-59 minutes)",
         "type": "number",
         "required": true,
-        "default": 15
-      }
+        "default": 1
+      },
+      "printInterval": {
+        "title": "Print Interval (number of datapoint to store before printing)",
+        "type": "number",
+        "required": true,
+        "default": 10
+      },
     }
   }
 }
