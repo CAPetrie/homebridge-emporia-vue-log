@@ -64,11 +64,12 @@ export class EmporiaVueVirtualSwitchAccessory {
   // Update the state of the switch
   async updateState(init: boolean = false) {
     const printInterval = this.platform.config.printInterval ?? 10;
+    const powerThreshold = this.platform.config.powerThreshold ?? 450;
     const currentWatts = await this.getStateEmporiaVue();
     //if (!Number.isFinite(currentWatts)) {
     // throw new Error(`Invalid wattage received: ${currentWatts}`);
     //}
-    this.state.isOn = currentWatts > 400;
+    this.state.isOn = currentWatts > powerThreshold;
     this.state.powerHistory.push(currentWatts);
     if (this.state.powerHistory.length > printInterval) {
       this.state.powerHistory.shift();

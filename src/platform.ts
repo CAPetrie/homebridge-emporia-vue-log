@@ -11,6 +11,7 @@ interface EmporiaVuePluginConfig extends PlatformConfig {
   emporiaVueChannelName?: string;
   refreshIntervalMinutes?: number;
   printInterval?: number;
+  powerThreshold?: number;
 }
 /**
  * HomebridgePlatform
