@@ -1,4 +1,4 @@
-# homebridge-emporia-vue-plugin
+# homebridge-emporia-vue-log
 
 Emporia Vue virtual switch plug-in (integration) that relies on Emporia Vue API to determine wether a device/channel is consuming a certain number of watts, and based on a watts threashold value, turns ON or OFF a HomeKit virtual switch.
 

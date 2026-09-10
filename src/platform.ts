@@ -48,18 +48,15 @@ export class EmporiaVueVirtualSwitchPlatform implements DynamicPlatformPlugin {
 
     // make sure the refresh interval is between 1 and 59 minutes
     const refreshMinutes = Math.min(Math.max(this.config.refreshIntervalMinutes || 15, 1), 59);
-
     this.log.info('Emporia Vue Virtual Switch Plugin Loaded');
     this.log.info(`Config "emporiaVueUsername" --> ${this.maskValue(this.config.emporiaVueUsername)}`);
     this.log.info(`Config "emporiaVuePassword" --> ${this.maskValue(this.config.emporiaVuePassword)}`);
     this.log.info(`Config "emporiaVueChannelName" --> ${this.config.emporiaVueChannelName}`);
     this.log.info(`Config "wattageThreshold" --> ${this.config.wattageThreshold}`);
     this.log.info(`Config "refreshIntervalMinutes" --> ${refreshMinutes}`);
-
     // setup the Emporia Vue integration
     this.emporia = new EmporiaVueIntegration(
       this.config.emporiaVueChannelName || 'Unknown Channel',
-      this.config.wattageThreshold || 10,
       refreshMinutes,
       this.config.emporiaVueUsername || '--NoUsernameSet--',
       this.config.emporiaVuePassword || '--NoPasswordSet--',
@@ -79,7 +76,6 @@ export class EmporiaVueVirtualSwitchPlatform implements DynamicPlatformPlugin {
       this.setupCronSchedules();
     });
   }
-
   /**
    * This function is invoked when homebridge restores cached accessories from disk at startup.
    * It should be used to set up event handlers for characteristics and update respective values.
@@ -90,7 +86,6 @@ export class EmporiaVueVirtualSwitchPlatform implements DynamicPlatformPlugin {
     // add the restored accessory to the accessories cache, so we can track if it has already been registered
     this.accessories.set(accessory.UUID, accessory);
   }
-
   /**
    * This is an example method showing how to register discovered accessories.
    * Accessories must only be registered once, previously created accessories
@@ -106,47 +101,38 @@ export class EmporiaVueVirtualSwitchPlatform implements DynamicPlatformPlugin {
         displayName: 'Emporia Vue Virtual Switch',
       },
     ];
-
     // loop over the discovered devices and register each one if it has not already been registered
     for (const device of devices) {
       // generate a unique id for the accessory this should be generated from
       // something globally unique, but constant, for example, the device serial
       // number or MAC address
       const uuid = device.uniqueId;
-
       // see if an accessory with the same uuid has already been registered and restored from
       // the cached devices we stored in the `configureAccessory` method above
       const existingAccessory = this.accessories.get(uuid);
-
       if (existingAccessory) {
         // the accessory already exists
         this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
-
         // create the accessory handler for the restored accessory
         this.handler = new EmporiaVueVirtualSwitchAccessory(this, existingAccessory, this.emporia);
-      } else {
+      }
+      else {
         // the accessory does not yet exist, so we need to create it
         this.log.info('Adding new accessory:', device.displayName);
-
         // create a new accessory
         const accessory = new this.api.platformAccessory(device.displayName, uuid);
-
         // store a copy of the device object in the `accessory.context`
         // the `context` property can be used to store any data about the accessory you may need
         accessory.context.device = device;
-
         // create the accessory handler for the newly create accessory
         // this is imported from `platformAccessory.ts`
         this.handler = new EmporiaVueVirtualSwitchAccessory(this, accessory, this.emporia);
-
         // link the accessory to your platform
         this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
       }
-
       // push into discoveredCacheUUIDs
       this.discoveredCacheUUIDs.push(uuid);
     }
-
     // you can also deal with accessories from the cache which are no longer present by removing them from Homebridge
     // for example, if your plugin logs into a cloud account to retrieve a device list, and a user has previously removed a device
     // from this cloud account, then this device will no longer be present in the device list but will still be in the Homebridge cache
@@ -157,7 +143,6 @@ export class EmporiaVueVirtualSwitchPlatform implements DynamicPlatformPlugin {
       }
     }
   }
-
   setupCronSchedules() {
     const schedules = this.emporia.getCronSchedules();
     schedules.forEach(schedule => {
@@ -174,14 +159,7 @@ export class EmporiaVueVirtualSwitchPlatform implements DynamicPlatformPlugin {
   }
 
   async performScheduledAccessoriesStateUpdate() : Promise<void> {
-    const stateBefore = await this.handler?.getOn();
-    this.log.info(`Emporia Vue virtual switch processing BEGIN - state BEFORE processing ==> ${stateBefore ? 'ON' : 'OFF'}`);
-
     await this.handler?.updateState();
-    await setTimeout(10);
-
-    const stateAfter = await this.handler?.getOn();
-    this.log.info(`Emporia Vue virtual switch processing END - state AFTER processing ==> ${stateAfter ? 'ON' : 'OFF'}`);
   }
 
   // Helper function to mask sensitive values

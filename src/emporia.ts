@@ -13,15 +13,13 @@ export interface CoreLogging {
 
 export class EmporiaVueIntegration {
   private channelName: string;
-  private thresholdWatts: number;
   private refreshIntervalMinutes: number;
   private username: string;
   private password: string;
   private log: CoreLogging;
 
-  constructor(channelName: string, thresholdWatts: number, refreshIntervalMinutes: number, username: string, password: string, log: CoreLogging) {
+  constructor(channelName: string, refreshIntervalMinutes: number, username: string, password: string, log: CoreLogging) {
     this.channelName = channelName;
-    this.thresholdWatts = thresholdWatts;
     this.refreshIntervalMinutes = refreshIntervalMinutes;
     this.username = username;
     this.password = password;
@@ -33,7 +31,7 @@ export class EmporiaVueIntegration {
   }
 
   // Return current state (boolean) from Emporia API based on channel's current watts usage
-  async getState(): Promise<boolean> {
+  async getState(): Promise<number> {
     // Login with username/password (tokens will be stored for reuse on subsequent logins)
     const vue = new EmporiaVue();
     try {
@@ -44,25 +42,26 @@ export class EmporiaVueIntegration {
       });
     } catch (error) {
       this.log.error('Error logging to Emporia Vue API', error);
-      return false;
+      return 0;
     }
 
     // Get all devices
     let devices;
     try {
       devices = await vue.getDevices();
-    } catch (error) {
+    }
+    catch (error) {
       this.log.error('Error fetching devices from Emporia Vue API', error);
-      return false;
+      return 0;
     }
 
     // Find the device that hosts the channel we are concerned with
     const channel = devices
-      .flatMap(device => device.channels)
-      .find(channel => channel.name === this.channelName);
+      .flatMap((device: { channels: any; }) => device.channels)
+      .find((channel: { channelNum: string; }) => channel.channelNum === this.channelName);
     if (!channel) {
       this.log.error(`Channel with name '${this.channelName}' not found, assuming OFF state`);
-      return false;
+      return 0;
     }
 
     // Get current energy usage for device/channel
@@ -70,18 +69,13 @@ export class EmporiaVueIntegration {
     try {
       const allUsageData = await vue.getDeviceListUsage(String(channel.deviceGid));
       deviceChannelUsage = allUsageData[channel.deviceGid].channelUsages[channel.channelNum];
-    } catch (error) {
+    }
+    catch (error) {
       this.log.error(`Error fetching '${this.channelName}' current kWh usage from Emporia Vue API`, error);
-      return false;
+      return 0;
     }
 
     // Convert kWh to Watts and round to 2 decimal places
-    const deviceChannelUsageWatts = (deviceChannelUsage.usage * 3600000).toFixed(2);
-    this.log.info(`Device/Channel ${this.channelName} current consumption: ${deviceChannelUsageWatts} Watts`);
-
-    const result = parseFloat(deviceChannelUsageWatts) >= this.thresholdWatts;
-    this.log.info(`Device/Channel ${this.channelName} reported as ${result ? 'ON' : 'OFF'} based on ${this.thresholdWatts} Watts threshold`);
-
-    return result;
+    return parseFloat((deviceChannelUsage.usage * 3600000).toFixed(0));
   }
 }

@@ -1,19 +1,19 @@
 {
-  "name": "homebridge-emporia-vue-plugin",
+  "name": "homebridge-emporia-vue-log",
   "displayName": "Emporia Vue Plugin for Homebridge",
   "type": "module",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "private": false,
-  "description": "Virtual Switch that turns ON and OFF based on Emporia Vue device threashold",
-  "author": "Yan Avery",
+  "description": "Virtual Switch that returns the watts as lux based on Emporia Vue",
+  "author": "Caleb Petrie",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/yanavery/homebridge-emporia-vue-plugin/#readme",
+  "homepage": "https://github.com/CAPetrie/homebridge-emporia-vue-log/#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yanavery/homebridge-emporia-vue-plugin.git"
+    "url": "https://github.com/CAPetrie/homebridge-emporia-vue-log.git"
   },
   "bugs": {
-    "url": "https://github.com/yanavery/homebridge-emporia-vue-plugin/issues"
+    "url": "https://github.com/CAPetrie/homebridge-emporia-vue-log/issues"
   },
   "keywords": [
     "homebridge-plugin",
@@ -26,7 +26,7 @@
   ],
   "main": "dist/index.js",
   "engines": {
-    "node": "^18.20.4 || ^20.18.0 || ^22.10.0",
+    "node": "^18.20.4 || ^20.18.0 || ^22.10.0  || ^24.20.0",
     "homebridge": "^1.8.0 || ^2.0.0-beta.0"
   },
   "scripts": {
@@ -54,11 +54,11 @@
     "typescript-eslint": "^8.12.2"
   },
   "dependencies": {
+    "emporia-vue-lib": "^1.0.0",
     "homebridge-lib": "^7.1.0",
     "moment-timezone": "^0.5.46",
     "node-cron": "^3.0.3",
     "pino": "^9.6.0",
-    "pino-pretty": "^13.0.0",
-    "emporia-vue-lib": "^1.0.0"
+    "pino-pretty": "^13.0.0"
   }
 }

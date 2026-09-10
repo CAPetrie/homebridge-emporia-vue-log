@@ -1,7 +1,7 @@
-import type { CharacteristicValue, PlatformAccessory, Service } from 'homebridge';
+import type {CharacteristicValue, PlatformAccessory, Service} from 'homebridge';
 
-import type { EmporiaVueVirtualSwitchPlatform } from './platform.js';
-import { EmporiaVueIntegration } from './emporia.js';
+import type {EmporiaVueVirtualSwitchPlatform} from './platform.js';
+import {EmporiaVueIntegration} from './emporia.js';
 
 /**
  * Platform Accessory
@@ -15,7 +15,9 @@ export class EmporiaVueVirtualSwitchAccessory {
    * State tracking of the accessory
    */
   private state = {
-    isOn: false,
+    printCount: 0 as number,
+    watts: 0 as number,
+    powerHistory: [] as number[],
   };
 
   constructor(
@@ -30,18 +32,17 @@ export class EmporiaVueVirtualSwitchAccessory {
       .setCharacteristic(this.platform.Characteristic.SerialNumber, 'Default-Serial');
 
     // get the Switch service if it exists, otherwise create a new Switch service
-    this.service = this.accessory.getService(this.platform.Service.Switch) || this.accessory.addService(this.platform.Service.Switch);
-
+    this.service = this.accessory.getService(this.platform.Service.LightSensor) || this.accessory.addService(this.platform.Service.LightSensor);
     // set the service name, this is what is displayed as the default name on the Home app
     this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.displayName);
 
     // register handlers for the On/Off Characteristic
-    this.service.getCharacteristic(this.platform.Characteristic.On)
-      .onSet(this.setOn.bind(this)) // SET - bind to the `setOn` method below
-      .onGet(this.getOn.bind(this)); // GET - bind to the `getOn` method below
+//    this.service.getCharacteristic(this.platform.Characteristic.On)
+//      .onSet(this.setOn.bind(this)) // SET - bind to the `setOn` method below
+//      .onGet(this.getOn.bind(this)); // GET - bind to the `getOn` method below
 
     // initial state update on startup (not awaited, will complete in the background)
-    this.updateState(true);
+    this.updateState();
   }
 
   /**
@@ -57,34 +58,34 @@ export class EmporiaVueVirtualSwitchAccessory {
    * These are sent when HomeKit wants to know the current state of the accessory.
    */
   async getOn(): Promise<CharacteristicValue> {
-    return this.state.isOn;
+    this.state.printCount = 10;
+    await this.updateState();
+    return true;
   }
 
   // Update the state of the switch
-  async updateState(init: boolean = false) {
-    const currentState = this.state.isOn;
-    const desiredState = await this.getStateEmporiaVue();
-
-    if (init) {
-      this.platform.log.info(`Emporia Vue switch initialized to ${desiredState ? 'ON' : 'OFF'} state.`);
-    } else {
-      if (currentState === desiredState) {
-        this.platform.log.info(`Emporia Vue switch switch kept in ${desiredState ? 'ON' : 'OFF'} state.`);
-      } else {
-        this.platform.log.info(`Emporia Vue switch transitioned from ${currentState ? 'ON' : 'OFF'}` +
-          ` to ${desiredState ? 'ON' : 'OFF'} state.`);
-      }
-    }
-
-    this.state.isOn = desiredState;
-    this.service
-      .getCharacteristic(this.platform.Characteristic.On)
-      .updateValue(this.state.isOn);
+  async updateState(init: number = 0) {
+    const currentWatts = await this.getStateEmporiaVue();
+        this.state.powerHistory.push(currentWatts);
+        if (this.state.powerHistory.length > 10) {this.state.powerHistory.shift();}
+        if (init) {
+            this.platform.log.info(`Emporia Vue initialized to ${currentWatts} W.`);
+        }
+        else {
+            this.state.printCount++;
+            if (this.state.printCount >= 10) {
+                this.platform.log.info(`Current power consumption: ${this.state.powerHistory.map(v => String(v).padStart(4, ' ')).join(', ')} W`);
+                this.state.printCount = 0;
+            }
+            else {
+                this.platform.log.debug(`current power consumption: ${currentWatts} W`);
+            }
+        }
+    this.state.watts = currentWatts;
   }
 
   // Retrieves state as per Emporia Vue API (doesn't update the device's internal state)
-  async getStateEmporiaVue(): Promise<boolean> {
-    const emporiaState = this.emporia.getState();
-    return emporiaState;
+  async getStateEmporiaVue(): Promise<number> {
+    return this.emporia.getState();
   }
 }
