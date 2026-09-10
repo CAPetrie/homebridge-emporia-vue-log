@@ -40,7 +40,6 @@ export class EmporiaVueIntegration {
         password: this.password,
         tokenStorageFile: 'keys.json',
       });
-      this.log.info('logged in successfully');
     } catch (error) {
       this.log.error('Error logging into Emporia Vue API:', error);
       throw error;

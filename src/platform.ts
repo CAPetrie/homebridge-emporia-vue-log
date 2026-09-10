@@ -42,7 +42,6 @@ export class EmporiaVueVirtualSwitchPlatform implements DynamicPlatformPlugin {
     public readonly config: EmporiaVuePluginConfig,
     public readonly api: API,
   ) {
-    this.log.info('platform: starting');
     this.Service = api.hap.Service;
     this.Characteristic = api.hap.Characteristic;
 
