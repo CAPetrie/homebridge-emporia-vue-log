@@ -42,12 +42,13 @@ export class EmporiaVueVirtualSwitchPlatform implements DynamicPlatformPlugin {
     public readonly config: EmporiaVuePluginConfig,
     public readonly api: API,
   ) {
+    this.log.info('platform: starting');
     this.Service = api.hap.Service;
     this.Characteristic = api.hap.Characteristic;
 
     // make sure the refresh interval is between 1 and 59 minutes
     const refreshMinutes = Math.min(Math.max(this.config.refreshIntervalMinutes || 15, 1), 59);
-    this.log.info('Emporia Vue Virtual Switch Plugin Loaded');
+    this.log.info('Emporia Vue Power Log Plugin Loaded');
     this.log.info(`Config "emporiaVueUsername" --> ${this.maskValue(this.config.emporiaVueUsername)}`);
     this.log.info(`Config "emporiaVuePassword" --> ${this.maskValue(this.config.emporiaVuePassword)}`);
     this.log.info(`Config "emporiaVueChannelName" --> ${this.config.emporiaVueChannelName}`);
@@ -78,12 +79,25 @@ export class EmporiaVueVirtualSwitchPlatform implements DynamicPlatformPlugin {
    * This function is invoked when homebridge restores cached accessories from disk at startup.
    * It should be used to set up event handlers for characteristics and update respective values.
    */
-  configureAccessory(accessory: PlatformAccessory) {
+  /*configureAccessory(accessory: PlatformAccessory) {
     this.log.info('Loading accessory from cache:', accessory.displayName);
 
     // add the restored accessory to the accessories cache, so we can track if it has already been registered
     this.accessories.set(accessory.UUID, accessory);
+  }*/
+  configureAccessory(accessory: PlatformAccessory) {
+    this.log.info(
+      'Removing cached accessory:',
+      accessory.displayName,
+    );
+
+    this.api.unregisterPlatformAccessories(
+      PLUGIN_NAME,
+      PLATFORM_NAME,
+      [accessory],
+    );
   }
+  
   /**
    * This is an example method showing how to register discovered accessories.
    * Accessories must only be registered once, previously created accessories
@@ -95,8 +109,8 @@ export class EmporiaVueVirtualSwitchPlatform implements DynamicPlatformPlugin {
     // or a user-defined array in the platform config.
     const devices = [
       {
-        uniqueId: 'A3F3BD92-B61C-46D0-9D8C-C940C8746445',
-        displayName: 'Emporia Vue Virtual Switch',
+        uniqueId: 'emporia-vue-power-log-main',
+        displayName: 'Emporia Vue Power Log',
       },
     ];
     // loop over the discovered devices and register each one if it has not already been registered
@@ -104,7 +118,7 @@ export class EmporiaVueVirtualSwitchPlatform implements DynamicPlatformPlugin {
       // generate a unique id for the accessory this should be generated from
       // something globally unique, but constant, for example, the device serial
       // number or MAC address
-      const uuid = device.uniqueId;
+      const uuid = this.api.hap.uuid.generate(device.uniqueId);
       // see if an accessory with the same uuid has already been registered and restored from
       // the cached devices we stored in the `configureAccessory` method above
       const existingAccessory = this.accessories.get(uuid);

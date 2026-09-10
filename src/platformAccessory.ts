@@ -33,6 +33,7 @@ export class EmporiaVueVirtualSwitchAccessory {
       .setCharacteristic(this.platform.Characteristic.SerialNumber, 'Default-Serial');
 
     // get the Switch service if it exists, otherwise create a new Switch service
+    //this.service = this.accessory.getService(this.platform.Service.Switch) || this.accessory.addService(this.platform.Service.Switch);
     this.service = this.accessory.getService(this.platform.Service.LightSensor) || this.accessory.addService(this.platform.Service.LightSensor);
     // set the service name, this is what is displayed as the default name on the Home app
     this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.displayName);
@@ -62,9 +63,9 @@ export class EmporiaVueVirtualSwitchAccessory {
     await this.updateState();
     return this.state.isOn;
   }
-
   // Update the state of the switch
   async updateState(init: boolean = false) {
+    this.platform.log.info('platformAccessory: updating');
     const printInterval = this.platform.config.printInterval ?? 10;
     const currentWatts = await this.getStateEmporiaVue();
     if (!Number.isFinite(currentWatts)) {
