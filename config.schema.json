@@ -30,11 +30,11 @@
         "required": true,
         "default": "1,2,3"
       },
-      "refreshIntervalMinutes": {
-        "title": "Refresh Interval (AKA polling interval, 1-59 minutes)",
+      "refreshIntervalSeconds": {
+        "title": "Refresh Interval (AKA polling interval, best to keep above 15 seconds)",
         "type": "number",
         "required": true,
-        "default": 1
+        "default": 60
       },
       "printInterval": {
         "title": "Print Interval (number of refresh intervals before data is printed to the console)",

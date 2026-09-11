@@ -38,6 +38,8 @@ export class EmporiaVueVirtualSwitchPlatform implements DynamicPlatformPlugin {
   // Peak, Pre-Peak and Pre-Pre-Peak Handlers
   private handler?: EmporiaVueVirtualSwitchAccessory;
 
+  private updateInProgress = false;
+
   constructor(
     public readonly log: Logging,
     public readonly config: EmporiaVuePluginConfig,
@@ -146,10 +148,16 @@ export class EmporiaVueVirtualSwitchPlatform implements DynamicPlatformPlugin {
     const schedules = this.emporia.getCronSchedules();
     schedules.forEach(schedule => {
       cron.schedule(schedule, async () => {
+        if (this.updateInProgress) {
+          return;
+        }
+        this.updateInProgress = true;
         try {
           await this.performScheduledAccessoriesStateUpdate();
         } catch (e) {
           this.log.error('Error running CRON scheduled state update', e);
+        } finally {
+          this.updateInProgress = false;
         }
       }, {
         timezone: 'America/New_York',

@@ -13,21 +13,22 @@ export interface CoreLogging {
 
 export class EmporiaVueIntegration {
   private channelName: string;
-  private refreshIntervalMinutes: number;
+  private refreshIntervalSeconds: number;
   private username: string;
   private password: string;
   private log: CoreLogging;
 
-  constructor(channelName: string, refreshIntervalMinutes: number, username: string, password: string, log: CoreLogging) {
+
+  constructor(channelName: string, refreshIntervalSeconds: number, username: string, password: string, log: CoreLogging) {
     this.channelName = channelName;
-    this.refreshIntervalMinutes = refreshIntervalMinutes;
+    this.refreshIntervalSeconds = refreshIntervalSeconds;
     this.username = username;
     this.password = password;
     this.log = log;
   }
 
   getCronSchedules(): string[] {
-    return [ `*/${this.refreshIntervalMinutes} * * * *` ]; // runs status update every X minutes
+    return [ `*/${this.refreshIntervalSeconds} * * * * *` ]; // runs status update every X minutes
   }
 
   // Return current wattage (number) from Emporia API
@@ -42,16 +43,36 @@ export class EmporiaVueIntegration {
       });
     } catch (error) {
       this.log.error('Error logging into Emporia Vue API:', error);
-      throw error;
+      return 0;
     }
 
     // Get all devices
     let devices;
     try {
       devices = await vue.getDevices();
-    } catch (error) {
-      this.log.error('Error fetching devices from Emporia Vue API', error);
-      throw error;
+    } catch (error: unknown) {
+      const errorMessage: string = error instanceof Error ? error.message : '';
+      this.log.debug(`Emporia API error: ${errorMessage}`);
+      if (errorMessage.includes('Not authenticated') ||
+          errorMessage.includes('Unauthorized') ||
+          errorMessage.includes('401')) {
+        this.log.warn('Authentication failed while fetching devices. Retrying once...');
+        try {
+          await vue.login({
+            username: this.username,
+            password: this.password,
+            tokenStorageFile: 'keys.json',
+          });
+          devices = await vue.getDevices();
+          this.log.debug('Authentication retry successful.');
+        } catch (retryError) {
+          this.log.error('Authentication retry failed. ',retryError);
+          return 0;
+        }
+      } else {
+        this.log.error('Error fetching devices from Emporia Vue API', error);
+        return 0;
+      }
     }
 
     // Find the device that hosts the channel we are concerned with
@@ -64,14 +85,36 @@ export class EmporiaVueIntegration {
     }
 
     // Get current energy usage for device/channel
-    let deviceChannelUsage;
+    let allUsageData;
     try {
-      const allUsageData = await vue.getDeviceListUsage(String(channel.deviceGid));
-      deviceChannelUsage = allUsageData[channel.deviceGid].channelUsages[channel.channelNum];
-    } catch (error) {
-      this.log.error(`Error fetching '${this.channelName}' current kWh usage from Emporia Vue API`, error);
-      throw error;
+      allUsageData = await vue.getDeviceListUsage(String(channel.deviceGid));
+    } catch (error: unknown) {
+      const errorMessage: string = error instanceof Error ? error.message : '';
+      if (errorMessage.includes('Not authenticated') ||
+          errorMessage.includes('Unauthorized') ||
+          errorMessage.includes('401')
+      ) {
+        this.log.warn('Authentication failed while fetching usage. Retrying once...');
+        try {
+          await vue.login({
+            username: this.username,
+            password: this.password,
+            tokenStorageFile: 'keys.json',
+          });
+          allUsageData = await vue.getDeviceListUsage(String(channel.deviceGid));
+
+          this.log.debug('Authentication retry successful.');
+        } catch (retryError) {
+          this.log.error('Authentication retry failed while fetching usage.', retryError);
+          return 0;
+        }
+      } else {
+        this.log.error(`Error fetching '${this.channelName}' current kWh usage from Emporia Vue API`,error);
+        return 0;
+      }
     }
+
+    const deviceChannelUsage = allUsageData[channel.deviceGid].channelUsages[channel.channelNum];
 
     // Convert kWh to Watts and round to 2 decimal places
     return parseFloat((deviceChannelUsage.usage * 3600000).toFixed(0));
